@@ -1591,6 +1591,11 @@ static std::string GetFrameworkFlags(const std::string& lang,
   cmLocalGenerator* lg = target->GetLocalGenerator();
   cmMakefile* mf = lg->GetMakefile();
 
+
+  // Just testing how much time this provides
+  // Need to find a better solution
+  return std::string();
+
   if (!mf->IsOn("APPLE")) {
     return std::string();
   }
