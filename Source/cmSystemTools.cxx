@@ -46,6 +46,7 @@
 #include <ctime>
 #include <iostream>
 #include <sstream>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -2134,16 +2135,31 @@ bool cmSystemTools::GuessLibrarySOName(std::string const& fullPath,
 bool cmSystemTools::GuessLibraryInstallName(std::string const& fullPath,
                                             std::string& soname)
 {
+  static std::unordered_map<std::string, std::tuple<bool, std::string>> cache;
+  auto found = cache.find(fullPath);
+  if (found != cache.end())
+  {
+      const auto result_pair = found->second;
+      const bool result = std::get<0>(result_pair);
+      if (result) {
+          soname = std::get<1>(result_pair);
+          return true;
+      }
+      return result;
+  }
 #if defined(CMAKE_USE_MACH_PARSER)
   cmMachO macho(fullPath.c_str());
   if (macho) {
-    return macho.GetInstallName(soname);
+    const bool result = macho.GetInstallName(soname);
+    cache.insert({fullPath, {result, soname}});
+    return result;
   }
 #else
   (void)fullPath;
   (void)soname;
 #endif
 
+  cache.insert({fullPath, {false, soname}});
   return false;
 }
 
